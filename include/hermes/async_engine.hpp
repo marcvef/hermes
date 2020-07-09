@@ -49,7 +49,7 @@ template <typename Request>
 using output_set = std::vector<typename Request::output_type>;
 
 namespace detail {
-void register_user_request_types();
+void register_user_request_types(uint32_t provider_id = 0);
 } // namespace detail
 
 /** public */
@@ -93,7 +93,8 @@ public:
     async_engine(transport transport_type,
                  engine_options opts,
                  const std::string& bind_address = "",
-                 bool listen = false) :
+                 bool listen = false,
+                 uint32_t provider_id = 0) :
         m_shutdown(false),
         m_listen(listen),
         m_transport(transport_type) {
@@ -135,7 +136,7 @@ public:
         }
 
         HERMES_DEBUG("Registering RPCs");
-        register_rpcs();
+        register_rpcs(provider_id);
     }
 
     /**
@@ -650,26 +651,30 @@ private:
      * of the asynchronous engine
      */
     void
-    register_rpcs() {
+    register_rpcs(uint32_t provider_id = 0) {
 
         assert(m_hg_class);
         assert(m_hg_context);
 
-        detail::register_user_request_types();
+        detail::register_user_request_types(provider_id);
 
         for(auto&& kv : detail::registered_requests()) {
 
-            // auto&& id = kv.first;
+//             auto&& id = kv.first;
             auto&& descriptor = kv.second;
+            if (provider_id == descriptor->m_provider_id) {
+                HERMES_DEBUG("**** registered: provider {}, {}, {}, {}, {}, {}",
+                             descriptor->m_provider_id,
+                             descriptor->m_id,
+                             descriptor->m_mercury_id,
+                             descriptor->m_name,
+                             reinterpret_cast<void*>(descriptor->m_mercury_input_cb),
+                             reinterpret_cast<void*>(descriptor->m_mercury_output_cb));
 
-            HERMES_DEBUG("**** registered: {}, {}, {}, {}, {}", 
-                    descriptor->m_id,
-                    descriptor->m_mercury_id,
-                    descriptor->m_name,
-                    reinterpret_cast<void*>(descriptor->m_mercury_input_cb),
-                    reinterpret_cast<void*>(descriptor->m_mercury_output_cb));
+                detail::register_mercury_rpc(m_hg_class, descriptor, m_listen);
+            }
 
-            detail::register_mercury_rpc(m_hg_class, descriptor, m_listen);
+
         }
     }
 

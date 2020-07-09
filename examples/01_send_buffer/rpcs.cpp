@@ -7,7 +7,7 @@ namespace hermes { namespace detail {
 // register request types so that they can be used by users and the engine
 //
 void
-register_user_request_types() {
+register_user_request_types(uint32_t provider_id) {
     (void) registered_requests().add<example_rpcs::send_message>();
     (void) registered_requests().add<example_rpcs::send_file>();
     (void) registered_requests().add<example_rpcs::send_buffer>();
