@@ -104,7 +104,7 @@ std::array<
     std::make_tuple(
             transport::ofi_tcp,
             "ofi+tcp://",
-            "ofi+tcp://"
+            "ofi+tcp;ofi_rxm://"
             ),
     std::make_tuple(
             transport::ofi_verbs,
